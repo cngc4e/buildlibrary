@@ -9,25 +9,29 @@ function setDropzoneCallback(cb) {
     callback = cb;
 }
 
-function registerZoneListeners(zone) {
-    var events = ['dragenter', 'dragleave', 'dragover', 'drop'], file, target, i, len;
+var last_target = null;
+function registerDragzoneListeners(zone) {
+    var events = ['dragenter', 'dragleave', 'dragover', 'drop'];
 
-    zone.addEventListener('change', function (e) {
-        if (e.target && e.target.nodeName === 'INPUT' && e.target.type === 'file') {
-            let files = e.target.files;
-            if (callback && files.length > 0) {
-                callback(files[0]);  // single file only
+    events.map(function(event) {
+        window.addEventListener(event, function(e) {
+            e = e || window.event;
+            if (event === 'dragleave' || event === 'drop') {
+                // only register drag leave when leaving the document
+                if (e.target === last_target || e.target === document) {
+                    zone.classList.remove('dropzone-dragging');
+                }
+            } else {
+                last_target = e.target;
+                zone.classList.add('dropzone-dragging');
             }
-        }
-    }.bind(this), false);
-
-    events.map(function (event) {
-        zone.addEventListener(event, function (e) {
-            if (e.target && e.target.nodeName === 'INPUT' && e.target.type === 'file') {
-                if (event === 'dragleave' || event === 'drop') {
-                    e.target.parentNode.classList.remove('dropzone-dragging');
-                } else {
-                    e.target.parentNode.classList.add('dropzone-dragging');
+            if (event === 'drop') {
+                if (e.preventDefault) {  // don't redirect to the image
+                    e.preventDefault();
+                }
+                let files = e.dataTransfer.files;
+                if (callback && files.length > 0) {
+                    callback(files[0]);  // single file only
                 }
             }
         }, false);
@@ -57,7 +61,7 @@ zone.appendChild(createEls('p', {}, 'Drag, paste or select your image.'));
 zone.appendChild(createEls('input', {type: 'file', multiple: 'multiple', accept: 'image/*'}));
 //this.insertAfter(zone, createEls('div', {className: 'status'}))
 
-registerZoneListeners(zone);
+registerDragzoneListeners(zone);
 
 document.onpaste = function(event) {
     var items = (event.clipboardData || event.originalEvent.clipboardData).items;
