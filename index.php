@@ -32,7 +32,7 @@ if(isset($_GET['logout'])) {
 	setcookie("loggedin_id", "", time() - 3600);
 	setcookie("loggedin_username", "", time() - 3600);
 	setcookie("session_id", "", time() - 3600);
-	header("Refresh:0; url=http://niclasjensen.dk/buildlibrary/");
+	header("Refresh:0; url=" . $site_url);
 } elseif(isset($_POST['loginname'])) {
 
 	$loginname = $_POST['loginname'];
@@ -49,16 +49,16 @@ if(isset($_GET['logout'])) {
 
 	if (password_verify($loginpassword, $hash)) {
 		$cookietime = time() + 86400 * 30; // 86400 = 1 day
-		setcookie("loggedin", 1, $cookietime, "/buildlibrary");
-		setcookie("loggedin_id", $row['id'], $cookietime, "/buildlibrary");
-		setcookie("loggedin_username", $row['name'], $cookietime, "/buildlibrary");
+		setcookie("loggedin", 1, $cookietime, $site_path);
+		setcookie("loggedin_id", $row['id'], $cookietime, $site_path);
+		setcookie("loggedin_username", $row['name'], $cookietime, $site_path);
 		$session_id = hash('sha256', $row['name'] . getUserIpAddr() . rand());
-		setcookie("session_id", $session_id, $cookietime, "/buildlibrary");
+		setcookie("session_id", $session_id, $cookietime, $site_path);
 		echo "you are logged in! welcome " . $row['name'];
 		$sql = "UPDATE users SET session_id = '$session_id' WHERE id='$row[id]'";
 		if(mysqli_query($link, $sql)) {
 			echo "<br>session id set!";
-			header("Refresh:0; url=http://niclasjensen.dk/buildlibrary/");
+			header("Refresh:0; url=" . $site_url);
 		} else {
 			echo "<br>session id failed :(";
 		}
